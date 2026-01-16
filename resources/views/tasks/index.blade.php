@@ -70,9 +70,9 @@
                             <td class="p-3 border">{{ $task->category->name }}</td>
                             <td class="p-3 border">
                                 @if ($task->status === 'completed')
-                                    <span class="text-green-600 font-semibold">✅ Completed</span>
+                                    <span class="text-green-600 font-semibold"> Completed</span>
                                 @else
-                                    <span class="text-yellow-600 font-semibold">⏳ Pending</span>
+                                    <span class="text-yellow-600 font-semibold"> Pending</span>
                                 @endif
                             </td>
                             <td class="p-3 border">
