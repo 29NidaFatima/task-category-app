@@ -12,21 +12,36 @@ class TaskController extends Controller
     // READ
     public function index()
     {
-        $tasks = Task::where('user_id', Auth::id())
-            ->with('category')
-            ->get();
+        $query = Task::where('user_id', Auth::id())
+            ->with('category');
+
+        // Sorting
+        $sort = request('sort', 'latest');
+
+        if ($sort === 'due_date') {
+            $query->orderByRaw('due_date IS NULL, due_date ASC');
+        } elseif ($sort === 'priority') {
+            $query->orderByRaw("FIELD(priority, 'high', 'medium', 'low')");
+        } else {
+            $query->latest();
+        }
+
+        $tasks = $query->get();
 
         $categories = Category::all();
 
         return view('tasks.index', compact('tasks', 'categories'));
     }
 
+
     // CREATE
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'required',
-            'category_id' => 'required',
+            'category_id' => 'required|exists:categories,id',
+            'priority' => 'required|in:low,medium,high',
+            'due_date' => 'nullable|date',
         ]);
 
         Task::create([
@@ -35,6 +50,8 @@ class TaskController extends Controller
             'title'       => $request->title,
             'description' => $request->description,
             'status'      => 'pending',
+            'priority' => $request->priority,
+            'due_date' => $request->due_date,
         ]);
 
         return redirect('/tasks');
@@ -52,7 +69,7 @@ class TaskController extends Controller
         return view('tasks.edit', compact('task', 'categories'));
     }
 
-    // UPDATE (edit + status toggle)
+    // UPDATE
     public function update(Request $request, Task $task)
     {
         if ($task->user_id !== Auth::id()) {
@@ -61,19 +78,27 @@ class TaskController extends Controller
 
         $request->validate([
             'title' => 'required',
-            'category_id' => 'required',
+            'category_id' => 'required|exists:categories,id',
             'status' => 'nullable|in:pending,completed',
+            'priority' => 'required|in:low,medium,high',
+            'due_date' => 'nullable|date',
         ]);
 
+        $status = $request->status ?? $task->status;
+
         $task->update([
-            'title'       => $request->title,
-            'description' => $request->description,
-            'category_id' => $request->category_id,
-            'status'      => $request->status ?? $task->status,
+            'title'        => $request->title,
+            'description'  => $request->description,
+            'category_id'  => $request->category_id,
+            'status'       => $status,
+            'priority'     => $request->priority,
+            'due_date'     => $request->due_date,
+            'completed_at' => $status === 'completed' ? now() : null,
         ]);
 
         return redirect('/tasks');
     }
+
 
     // DELETE
     public function destroy(Task $task)

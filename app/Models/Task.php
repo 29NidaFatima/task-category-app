@@ -15,8 +15,22 @@ class Task extends Model
         'category_id',
         'title',
         'description',
-        'status'
+        'status',
+        'priority',
+        'due_date',
+        'completed_at',
     ];
+    protected $casts = [
+        'due_date' => 'date',
+        'completed_at' => 'datetime',
+    ];
+
+    public function isOverdue(): bool
+    {
+        return $this->status === 'pending'
+            && $this->due_date
+            && $this->due_date->isPast();
+    }
 
 
     public function category()
