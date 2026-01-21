@@ -20,8 +20,22 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::resource('categories', CategoryController::class);
+
+
+    Route::get('/tasks-archived', [TaskController::class, 'archived'])
+        ->name('tasks.archived');
+
+    Route::post('/tasks/{task}/archive', [TaskController::class, 'archive'])
+        ->name('tasks.archive');
+
+    Route::post('/tasks/{task}/unarchive', [TaskController::class, 'unarchive'])
+        ->name('tasks.unarchive');
+
     Route::resource('tasks', TaskController::class);
+    Route::resource('categories', CategoryController::class);
 });
+
+
+
 
 require __DIR__ . '/auth.php';

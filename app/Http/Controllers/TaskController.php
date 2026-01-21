@@ -7,12 +7,16 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+
 class TaskController extends Controller
 {
-    // READ
+    // =========================
+    // READ ACTIVE TASKS
+    // =========================
     public function index()
     {
         $query = Task::where('user_id', Auth::id())
+            ->whereNull('archived_at')        
             ->with('category');
 
         // Sorting
@@ -27,21 +31,34 @@ class TaskController extends Controller
         }
 
         $tasks = $query->get();
-
         $categories = Category::all();
 
         return view('tasks.index', compact('tasks', 'categories'));
     }
 
+    // =========================
+    // READ ARCHIVED TASKS
+    // =========================
+    public function archived()
+    {
+        $tasks = Task::where('user_id', Auth::id())
+            ->whereNotNull('archived_at')
+            ->latest()
+            ->get();
 
+        return view('tasks.archived', compact('tasks'));
+    }
+
+    // =========================
     // CREATE
+    // =========================
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required',
+            'title'       => 'required',
             'category_id' => 'required|exists:categories,id',
-            'priority' => 'required|in:low,medium,high',
-            'due_date' => 'nullable|date',
+            'priority'    => 'required|in:low,medium,high',
+            'due_date'    => 'nullable|date',
         ]);
 
         Task::create([
@@ -50,38 +67,38 @@ class TaskController extends Controller
             'title'       => $request->title,
             'description' => $request->description,
             'status'      => 'pending',
-            'priority' => $request->priority,
-            'due_date' => $request->due_date,
+            'priority'    => $request->priority,
+            'due_date'    => $request->due_date,
         ]);
 
         return redirect('/tasks');
     }
 
+    // =========================
     // EDIT PAGE
+    // =========================
     public function edit(Task $task)
     {
-        if ($task->user_id !== Auth::id()) {
-            abort(403);
-        }
+        abort_unless($task->user_id === Auth::id(), 403);
 
         $categories = Category::all();
 
         return view('tasks.edit', compact('task', 'categories'));
     }
 
+    // =========================
     // UPDATE
+    // =========================
     public function update(Request $request, Task $task)
     {
-        if ($task->user_id !== Auth::id()) {
-            abort(403);
-        }
+        abort_unless($task->user_id === Auth::id(), 403);
 
         $request->validate([
-            'title' => 'required',
+            'title'       => 'required',
             'category_id' => 'required|exists:categories,id',
-            'status' => 'nullable|in:pending,completed',
-            'priority' => 'required|in:low,medium,high',
-            'due_date' => 'nullable|date',
+            'status'      => 'nullable|in:pending,completed',
+            'priority'    => 'required|in:low,medium,high',
+            'due_date'    => 'nullable|date',
         ]);
 
         $status = $request->status ?? $task->status;
@@ -99,16 +116,43 @@ class TaskController extends Controller
         return redirect('/tasks');
     }
 
+    // =========================
+    // ARCHIVE TASK (NEW)
+    // =========================
+    public function archive(Task $task)
+    {
+        abort_unless($task->user_id === Auth::id(), 403);
 
-    // DELETE
+        $task->update(['archived_at' => now()]);
+
+        return redirect()->route('tasks.archived');
+       
+
+    }
+
+
+
+    // =========================
+    // UNARCHIVE TASK (NEW)
+    // =========================
+    public function unarchive(Task $task)
+    {
+        abort_unless($task->user_id === Auth::id(), 403);
+
+        $task->update([
+            'archived_at' => null,
+        ]);
+
+       return redirect('/tasks');
+    }
+
+    // =========================
+    // DELETE (SOFT DELETE)
+    // =========================
     public function destroy(Task $task)
     {
-        if ($task->user_id !== Auth::id()) {
-            abort(403);
-        }
-
+        abort_unless($task->user_id === Auth::id(), 403);
         $task->delete();
-
         return redirect('/tasks');
     }
 }

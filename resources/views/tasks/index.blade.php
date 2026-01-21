@@ -1,8 +1,15 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="text-xl font-bold text-gray-800">
-            Task Management
-        </h2>
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold text-gray-800">
+                Task Management
+            </h2>
+
+            <a href="{{ route('tasks.archived') }}"
+               class="text-sm text-blue-600 hover:underline">
+                View Archived Tasks
+            </a>
+        </div>
     </x-slot>
 
     <div class="p-6 max-w-5xl mx-auto space-y-8">
@@ -24,7 +31,7 @@
                         name="title"
                         value="{{ old('title') }}"
                         required
-                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
+                        class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">
                     @error('title')
                         <p class="text-sm text-red-600 mt-1">{{ $message }}</p>
                     @enderror
@@ -37,7 +44,7 @@
                     </label>
                     <textarea
                         name="description"
-                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">{{ old('description') }}</textarea>
+                        class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">{{ old('description') }}</textarea>
                 </div>
 
                 <!-- Priority -->
@@ -48,10 +55,10 @@
                     <select
                         name="priority"
                         required
-                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
-               <option value="">Select Priority</option>
+                        class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">
+                        <option value="">Select Priority</option>
                         <option value="low" {{ old('priority') === 'low' ? 'selected' : '' }}>Low</option>
-                        <option value="medium" {{ old('priority', 'medium') === 'medium' ? 'selected' : '' }}>Medium</option>
+                        <option value="medium" {{ old('priority','medium') === 'medium' ? 'selected' : '' }}>Medium</option>
                         <option value="high" {{ old('priority') === 'high' ? 'selected' : '' }}>High</option>
                     </select>
                 </div>
@@ -65,7 +72,7 @@
                         type="date"
                         name="due_date"
                         value="{{ old('due_date') }}"
-                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
+                        class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">
                 </div>
 
                 <!-- Category -->
@@ -76,11 +83,10 @@
                     <select
                         name="category_id"
                         required
-                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-300">
+                        class="w-full border rounded px-3 py-2 focus:ring focus:ring-blue-300">
                         <option value="">Select Category</option>
                         @foreach ($categories as $category)
-                            <option
-                                value="{{ $category->id }}"
+                            <option value="{{ $category->id }}"
                                 {{ old('category_id') == $category->id ? 'selected' : '' }}>
                                 {{ $category->name }}
                             </option>
@@ -88,7 +94,6 @@
                     </select>
                 </div>
 
-                <!-- Submit -->
                 <button
                     type="submit"
                     class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700">
@@ -134,10 +139,13 @@
 
                             <td class="p-3 border">
                                 <div class="flex gap-2 flex-wrap">
-                                    <a href="{{ route('tasks.edit', $task) }}" class="text-blue-600 hover:underline">
+
+                                    <a href="{{ route('tasks.edit', $task) }}"
+                                       class="text-blue-600 hover:underline">
                                         Edit
                                     </a>
 
+                                    <!-- Status Toggle -->
                                     <form method="POST" action="{{ route('tasks.update', $task) }}">
                                         @csrf
                                         @method('PUT')
@@ -154,15 +162,24 @@
                                         </button>
                                     </form>
 
+                                    <!-- Archive -->
+                                    <form method="POST" action="{{ route('tasks.archive', $task) }}">
+                                        @csrf
+                                        <button class="text-sm bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600">
+                                            Archive
+                                        </button>
+                                    </form>
+
+                                    <!-- Delete -->
                                     <form method="POST" action="{{ route('tasks.destroy', $task) }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button
-                                            onclick="return confirm('Delete task?')"
-                                            class="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                                        <button onclick="return confirm('Delete task?')"
+                                                class="text-sm bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
                                             Delete
                                         </button>
                                     </form>
+
                                 </div>
                             </td>
                         </tr>
