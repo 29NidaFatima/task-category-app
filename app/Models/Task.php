@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Category;
 use App\Models\User;
+use App\Models\Tag;
 
 class Task extends Model
 {
@@ -23,7 +24,10 @@ class Task extends Model
         'completed_at',
         'archived_at',
     ];
-
+public function tags()
+{
+    return $this->belongsToMany(Tag::class);
+}
 
     protected $casts = [
         'due_date' => 'date',
