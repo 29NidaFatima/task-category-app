@@ -32,7 +32,9 @@ Route::middleware('auth')->group(function () {
         ->name('tasks.unarchive');
 
     Route::resource('tasks', TaskController::class);
-    Route::resource('categories', CategoryController::class);
+    Route::middleware('admin')->group(function () {
+        Route::resource('categories', CategoryController::class);
+    });
 });
 
 

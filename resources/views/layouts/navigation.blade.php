@@ -28,13 +28,19 @@
             📝 Tasks
         </a>
 
+@auth
+    @if(auth()->user()->role === 'admin')
         <a href="{{ route('categories.index') }}"
-           class="flex items-center gap-3 px-4 py-2 rounded-xl transition
+           class="group flex items-center gap-3 px-4 py-2 rounded-xl transition
            {{ request()->routeIs('categories.*')
                ? 'bg-blue-600 text-white shadow'
                : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700' }}">
-            📂 Categories
+            <span class="text-lg">📂</span>
+            <span class="font-medium">Categories</span>
         </a>
+    @endif
+@endauth
+
     </nav>
 
     <!-- User Section -->
