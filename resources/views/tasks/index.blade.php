@@ -94,6 +94,29 @@
                     </select>
                 </div>
 
+                <!-- ================= Tags ================= -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                        Tags
+                    </label>
+
+                    <div class="flex flex-wrap gap-3">
+                        @forelse ($tags as $tag)
+                            <label class="flex items-center gap-1 text-sm">
+                                <input
+                                    type="checkbox"
+                                    name="tags[]"
+                                    value="{{ $tag->id }}"
+                                    {{ in_array($tag->id, old('tags', [])) ? 'checked' : '' }}
+                                    class="rounded border-gray-300">
+                                {{ $tag->name }}
+                            </label>
+                        @empty
+                            <span class="text-sm text-gray-500">No tags available</span>
+                        @endforelse
+                    </div>
+                </div>
+
                 <button
                     type="submit"
                     class="bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700">
@@ -106,6 +129,37 @@
         <div class="bg-white shadow rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-4">Your Tasks</h3>
 
+            <!-- ================= Filter by Tag ================= -->
+            <form method="GET" action="{{ route('tasks.index') }}"
+                  class="mb-4 flex gap-3 items-center">
+
+                <label class="text-sm font-medium text-gray-700">
+                    Filter by Tag:
+                </label>
+<select
+    name="tag_id"
+    onchange="this.form.submit()"
+    class="border border-gray-300 rounded-lg
+           px-5 py-3
+           text-base
+           w-55
+           bg-white
+           shadow-sm
+           focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400
+           hover:border-blue-300 transition">
+
+    <option value="">All Tags</option>
+
+    @foreach ($tags as $tag)
+        <option value="{{ $tag->id }}"
+            {{ request('tag_id') == $tag->id ? 'selected' : '' }}>
+            {{ $tag->name }}
+        </option>
+    @endforeach
+</select>
+
+            </form>
+
             <table class="w-full border-collapse">
                 <thead>
                     <tr class="bg-gray-100 text-left">
@@ -113,6 +167,7 @@
                         <th class="p-3 border">Category</th>
                         <th class="p-3 border">Status</th>
                         <th class="p-3 border">Priority</th>
+                        <th class="p-3 border">Tags</th>
                         <th class="p-3 border">Actions</th>
                     </tr>
                 </thead>
@@ -135,6 +190,20 @@
 
                             <td class="p-3 border capitalize font-semibold">
                                 {{ $task->priority }}
+                            </td>
+
+                            <td class="p-3 border">
+                                @if ($task->tags->count())
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach ($task->tags as $tag)
+                                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                                {{ $tag->name }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-sm text-gray-400">No tags</span>
+                                @endif
                             </td>
 
                             <td class="p-3 border">
@@ -185,7 +254,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="p-4 text-center text-gray-500">
+                            <td colspan="6" class="p-4 text-center text-gray-500">
                                 No tasks found.
                             </td>
                         </tr>
